@@ -81,7 +81,7 @@ class ListMembersStream(RESTStream):
     path = "group/{list_id}/members/all"
     primary_keys = []
     replication_key = None
-    schema_filepath = SCHEMAS_DIR / "listMembers.json"
+    schema_filepath = SCHEMAS_DIR / "list_members.json"
 
     url_base = "https://a.klaviyo.com/api/v2/"
 
