@@ -12,7 +12,7 @@ from singer_sdk import typing as th  # JSON Schema typing helpers
 
 from singer_sdk.helpers.jsonpath import extract_jsonpath
 from singer_sdk.streams import RESTStream
-import mixpanel_custom.tap
+import tap_klaviyo_custom.tap
 
 import singer
 
@@ -38,7 +38,6 @@ class ListsStream(RESTStream):
     def http_headers(self) -> dict:
         """Return the http headers needed."""
         api_secret = self.config['api_secret']
-        #Mixpanel API key must be encoded to meet the format expected by the SDK
         headers = {'Authorization': 'Basic {}'.format(
             str(base64.urlsafe_b64encode(api_secret.encode("utf-8")), "utf-8"))}
         return headers

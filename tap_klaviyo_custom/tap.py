@@ -13,7 +13,7 @@ from tap_klaviyo_custom.streams import (
 )
 
 STREAM_TYPES = [
-    ListMembersStream,
+    # ListMembersStream,
     ListsStream
 ]
 
