@@ -32,12 +32,11 @@ class ListsStream(RESTStream):
     url_base = "https://a.klaviyo.com/api/v2/"
 
     records_jsonpath = "$[*]"  # Or override `parse_response`.
-    api_secret = ''
 
     def get_url_params(self, partition: Optional[dict]) -> Dict[str, Any]:
         """Return a dictionary of values to be used in URL parameterization."""
         params = {}
-        params.update({"api_key": self.api_secret})
+        params.update({"api_key": self.config['api_secret']})
         return params
 
     def prepare_request(
@@ -127,12 +126,11 @@ class ListMembersStream(RESTStream):
     url_base = "https://a.klaviyo.com/api/v2/"
 
     records_jsonpath = "$[*]"  # Or override `parse_response`.
-    api_secret = ''
 
     def get_url_params(self, partition: Optional[dict]) -> Dict[str, Any]:
         """Return a dictionary of values to be used in URL parameterization."""
         params = {}
-        params.update({"api_key": self.api_secret})
+        params.update({"api_key": self.config['api_secret']})
         return params
 
     def prepare_request(
@@ -183,7 +181,7 @@ class ListMembersStream(RESTStream):
         """
         next_page_token: Any = None
         finished = False
-        list_ids = ['RduZTr']
+        list_ids = self.config["listIDs"]
         for id in list_ids:
             while not finished:
                 prepared_request = self.prepare_request(
