@@ -13,13 +13,13 @@
     "object": {
       "type": "string"
     },
-    "name": {
+    "list_name": {
       "type": "string"
     },
     "type": {
       "type": "string"
     },
-    "id": {
+    "list_id": {
       "type": "string"
     }
   }
