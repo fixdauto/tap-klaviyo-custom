@@ -14,7 +14,7 @@ from tap_klaviyo_custom.streams import (
 
 STREAM_TYPES = [
     ListMembersStream,
-    #ListsStream
+    ListsStream
 ]
 
 
@@ -24,7 +24,6 @@ class Tapklaviyo_custom(Tap):
 
     config_jsonschema = th.PropertiesList(
         th.Property("auth_token", th.StringType, required=False),
-        th.Property("project_ids", th.ArrayType(th.StringType), required=False),
         th.Property("start_date", th.DateTimeType),
         th.Property("api_url", th.StringType, default="https://a.klaviyo.com/api/v2/"),
     ).to_dict()
