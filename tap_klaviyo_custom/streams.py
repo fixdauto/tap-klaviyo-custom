@@ -36,7 +36,7 @@ class ListsStream(RESTStream):
     def get_url_params(self, partition: Optional[dict]) -> Dict[str, Any]:
         """Return a dictionary of values to be used in URL parameterization."""
         params = {}
-        params.update({"api_key": self.config['api_secret']})
+        params.update({"api_key": self.config['api_key']})
         return params
 
     def prepare_request(
@@ -130,7 +130,7 @@ class ListMembersStream(RESTStream):
     def get_url_params(self, partition: Optional[dict]) -> Dict[str, Any]:
         """Return a dictionary of values to be used in URL parameterization."""
         params = {}
-        params.update({"api_key": self.config['api_secret']})
+        params.update({"api_key": self.config['api_key']})
         return params
 
     def prepare_request(
