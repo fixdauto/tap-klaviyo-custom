@@ -189,7 +189,7 @@ class ListMembersStream(RESTStream):
             resp_json = resp.json()
             result = resp_json['records']
             for row in result:
-                row['list_id'] = id
+                row['list_id'] = list_id
                 yield row
             
             #pulls marker from json response to use in next page API call
