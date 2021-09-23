@@ -119,7 +119,7 @@ class ListMembersStream(RESTStream):
     """Define custom stream."""
     name = "list_members"
     path = "group/{list_id}/members/all"
-    primary_keys = []
+    primary_keys = ["email"]
     replication_key = None
     schema_filepath = SCHEMAS_DIR / "list_members.json"
 
