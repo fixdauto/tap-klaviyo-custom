@@ -7,6 +7,7 @@ from typing import Any, Dict, Optional, Union, List, Iterable, cast
 import copy
 import urllib
 import json
+import time
 
 from singer_sdk import typing as th  # JSON Schema typing helpers
 
@@ -185,9 +186,24 @@ class ListMembersStream(RESTStream):
             prepared_request = self.prepare_request(
                 context, next_page_token=next_page_token, list_id=list_id
             )
-            resp = self._request_with_backoff(prepared_request, context)
-            resp_json = resp.json()
-            result = resp_json['records']
+            raw_resp = self._request_with_backoff(prepared_request, context)
+            resp = raw_resp.json()
+            if 'detail' in resp.keys() and 'throttled' in resp.get('detail'):
+                LOGGER.info(f'throttled response keys are: {resp.keys()}')
+                LOGGER.info(f'throttled response is: {resp}')
+                resp = None
+                retryLimit = 5
+                retryCount = 0
+                while(resp == None and retryCount < retryLimit):
+                    retryCount += 1
+                    #Dynamic sleep method uses the Retry-After header from the throttle response to set a sleep timer
+                    time.sleep(int(raw_resp.headers['Retry-After']))
+                    prepared_request = self.prepare_request(context, next_page_token=next_page_token, list_id=list_id)
+                    raw_retry = self._request_with_backoff(prepared_request, context)
+                    retry = raw_retry.json()
+                    if 'detail' not in retry.keys() or 'throttled' not in retry.get('detail'):
+                        resp = retry
+            result = resp['records']
             for row in result:
                 row['list_id'] = list_id
                 yield row
