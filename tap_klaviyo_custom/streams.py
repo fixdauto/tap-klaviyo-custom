@@ -210,8 +210,8 @@ class ListMembersStream(RESTStream):
             
             #pulls marker from json response to use in next page API call
             #breaks the loop when no marker is returned in the response
-            if 'marker' in resp_json.keys():
-                next_page_token = resp_json['marker']
+            if 'marker' in resp.keys():
+                next_page_token = resp['marker']
             else:
                 finished = True
 
