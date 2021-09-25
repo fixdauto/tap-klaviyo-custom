@@ -188,7 +188,7 @@ class ListMembersStream(RESTStream):
             )
             raw_resp = self._request_with_backoff(prepared_request, context)
             resp = raw_resp.json()
-            if 'detail' in resp.keys() and 'throttled' in resp.get('detail'):
+            if resp.get('http_status_code') == 429:
                 LOGGER.info(f'throttled response keys are: {resp.keys()}')
                 LOGGER.info(f'throttled response is: {resp}')
                 resp = None
@@ -201,7 +201,7 @@ class ListMembersStream(RESTStream):
                     prepared_request = self.prepare_request(context, next_page_token=next_page_token, list_id=list_id)
                     raw_retry = self._request_with_backoff(prepared_request, context)
                     retry = raw_retry.json()
-                    if 'detail' not in retry.keys() or 'throttled' not in retry.get('detail'):
+                    if resp.get('http_status_code') != 429:
                         resp = retry
             result = resp['records']
             for row in result:
