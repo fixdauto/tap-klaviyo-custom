@@ -187,6 +187,7 @@ class ListMembersStream(RESTStream):
                 context, next_page_token=next_page_token, list_id=list_id
             )
             raw_resp = self._request_with_backoff(prepared_request, context)
+            time.sleep(1)
             resp = raw_resp.json()
             if resp.get('http_status_code') == 429:
                 LOGGER.info(f'throttled response keys are: {resp.keys()}')
