@@ -26,7 +26,7 @@ class ListsStream(RESTStream):
     """Define custom stream."""
     name = "lists"
     path = "lists"
-    primary_keys = ["id"]
+    primary_keys = ["list_id"]
     replication_key = None
     schema_filepath = SCHEMAS_DIR / "lists.json"
 
