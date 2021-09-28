@@ -30,8 +30,6 @@ class ListsStream(RESTStream):
     replication_key = None
     schema_filepath = SCHEMAS_DIR / "lists.json"
 
-    url_base = "https://a.klaviyo.com/api/v2/"
-
     records_jsonpath = "$[*]"  # Or override `parse_response`.
 
     def get_url_params(self, partition: Optional[dict]) -> Dict[str, Any]:
@@ -74,7 +72,7 @@ class ListsStream(RESTStream):
 
         Developers override this method to perform dynamic URL generation.
         """
-        url = self.url_base+self.path
+        url = self.config['url_base']+self.path
 
         return url
 
@@ -124,8 +122,6 @@ class ListMembersStream(RESTStream):
     replication_key = None
     schema_filepath = SCHEMAS_DIR / "list_members.json"
 
-    url_base = "https://a.klaviyo.com/api/v2/"
-
     records_jsonpath = "$[*]"  # Or override `parse_response`.
 
     def get_url_params(self, partition: Optional[dict]) -> Dict[str, Any]:
@@ -171,7 +167,7 @@ class ListMembersStream(RESTStream):
 
         Developers override this method to perform dynamic URL generation.
         """
-        url = self.url_base+self.path.format(list_id=list_id)
+        url = self.config['url_base']+self.path.format(list_id=list_id)
 
         return url
 
@@ -210,5 +206,4 @@ class ListMembersStream(RESTStream):
         list_ids = self.config["listIDs"]
         for id in list_ids:
             for row in self.request_records(context, list_id=id):
-                row = self.post_process(row, context)
                 yield row
