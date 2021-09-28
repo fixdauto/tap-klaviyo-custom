@@ -7,7 +7,6 @@ from singer_sdk import typing as th  # JSON schema typing helpers
 
 # TODO: Import your custom stream types here:
 from tap_klaviyo_custom.streams import (
-    RESTStream,
     ListMembersStream,
     ListsStream
 )
