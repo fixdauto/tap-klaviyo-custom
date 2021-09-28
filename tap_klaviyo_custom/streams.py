@@ -187,28 +187,13 @@ class ListMembersStream(RESTStream):
                 context, next_page_token=next_page_token, list_id=list_id
             )
             raw_resp = self._request_with_backoff(prepared_request, context)
+            #One second sleep timer between requests to avoid hitting the API rate limit
             time.sleep(1)
             resp = raw_resp.json()
-            if resp.get('http_status_code') == 429:
-                LOGGER.info(f'throttled response keys are: {resp.keys()}')
-                LOGGER.info(f'throttled response is: {resp}')
-                resp = None
-                retryLimit = 5
-                retryCount = 0
-                while(resp == None and retryCount < retryLimit):
-                    retryCount += 1
-                    #Dynamic sleep method uses the Retry-After header from the throttle response to set a sleep timer
-                    time.sleep(int(raw_resp.headers['Retry-After']))
-                    prepared_request = self.prepare_request(context, next_page_token=next_page_token, list_id=list_id)
-                    raw_retry = self._request_with_backoff(prepared_request, context)
-                    retry = raw_retry.json()
-                    if resp.get('http_status_code') != 429:
-                        resp = retry
             result = resp['records']
             for row in result:
                 row['list_id'] = list_id
-                yield row
-            
+                yield row            
             #pulls marker from json response to use in next page API call
             #breaks the loop when no marker is returned in the response
             if 'marker' in resp.keys():
