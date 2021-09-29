@@ -77,16 +77,6 @@ class ListsStream(RESTStream):
         return url
 
 
-    def get_records(self, context: Optional[dict]) -> Iterable[Dict[str, Any]]:
-        """Return a generator of row-type dictionary objects.
-
-        Each row emitted should be a dictionary of property names to their values.
-        """
-        for row in self.request_records(context):
-            row = self.post_process(row, context)
-            yield row
-
-
 
 class ListMembersStream(RESTStream):
     """Define custom stream."""
