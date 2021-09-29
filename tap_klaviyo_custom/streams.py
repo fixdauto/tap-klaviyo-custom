@@ -206,4 +206,5 @@ class ListMembersStream(RESTStream):
         list_ids = self.config["listIDs"]
         for id in list_ids:
             for row in self.request_records(context, list_id=id):
+                row = self.post_process(row, context)
                 yield row
