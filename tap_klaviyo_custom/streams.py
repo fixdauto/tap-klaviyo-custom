@@ -21,8 +21,6 @@ LOGGER = singer.get_logger()
 
 SCHEMAS_DIR = Path(__file__).parent / Path("./schemas")
 
-url_base = 'https://a.klaviyo.com/api/v2/'
-
 
 class ListsStream(RESTStream):
     """Define custom stream."""
@@ -31,6 +29,7 @@ class ListsStream(RESTStream):
     primary_keys = ["list_id"]
     replication_key = None
     schema_filepath = SCHEMAS_DIR / "lists.json"
+    url_base = 'https://a.klaviyo.com/api/v2/'
 
     records_jsonpath = "$[*]"  # Or override `parse_response`.
 
@@ -87,6 +86,7 @@ class ListMembersStream(RESTStream):
     primary_keys = ["email"]
     replication_key = None
     schema_filepath = SCHEMAS_DIR / "list_members.json"
+    url_base = 'https://a.klaviyo.com/api/v2/'
 
     records_jsonpath = "$[*]"  # Or override `parse_response`.
 
