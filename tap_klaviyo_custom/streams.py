@@ -29,6 +29,8 @@ class ListsStream(RESTStream):
     primary_keys = ["list_id"]
     replication_key = None
     schema_filepath = SCHEMAS_DIR / "lists.json"
+    #Defining the url_base outside of the class results in an error
+    url_base = 'https://a.klaviyo.com/api/v2/'
 
     records_jsonpath = "$[*]"  # Or override `parse_response`.
 
@@ -72,7 +74,7 @@ class ListsStream(RESTStream):
 
         Developers override this method to perform dynamic URL generation.
         """
-        url = self.config['url_base']+self.path
+        url = self.url_base+self.path
 
         return url
 
@@ -85,6 +87,8 @@ class ListMembersStream(RESTStream):
     primary_keys = ["email"]
     replication_key = None
     schema_filepath = SCHEMAS_DIR / "list_members.json"
+    #Defining the url_base outside of the class results in an error
+    url_base = 'https://a.klaviyo.com/api/v2/'
 
     records_jsonpath = "$[*]"  # Or override `parse_response`.
 
@@ -131,7 +135,7 @@ class ListMembersStream(RESTStream):
 
         Developers override this method to perform dynamic URL generation.
         """
-        url = self.config['url_base']+self.path.format(list_id=list_id)
+        url = self.url_base+self.path.format(list_id=list_id)
 
         return url
 
