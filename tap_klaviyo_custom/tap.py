@@ -23,8 +23,7 @@ class Tapklaviyo_custom(Tap):
     config_jsonschema = th.PropertiesList(
         th.Property("auth_token", th.StringType, required=False),
         th.Property("start_date", th.DateTimeType),
-        th.Property("api_url", th.StringType, default="https://a.klaviyo.com/api/v2/"),
-        th.Property("url_base", th.StringType, required=True)
+        th.Property("api_url", th.StringType, default="https://a.klaviyo.com/api/v2/")
     ).to_dict()
 
     def discover_streams(self) -> List[Stream]:
