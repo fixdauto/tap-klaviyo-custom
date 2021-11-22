@@ -146,11 +146,12 @@ class ListMembersStream(RESTStream):
         """
         next_page_token: Any = None
         finished = False
+        decorated_request = self.request_decorator(self._request)
         while not finished:
             prepared_request = self.prepare_request(
                 context, next_page_token=next_page_token, list_id=list_id
             )
-            raw_resp = self._request_with_backoff(prepared_request, context)
+            raw_resp = decorated_request(prepared_request, context)
             #One second sleep timer between requests to avoid hitting the API rate limit
             time.sleep(1)
             resp = raw_resp.json()
