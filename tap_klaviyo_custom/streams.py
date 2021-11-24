@@ -90,7 +90,7 @@ class ListMembersStream(RESTStream):
     #Defining the url_base outside of the class results in an error
     url_base = 'https://a.klaviyo.com/api/v2/'
 
-    records_jsonpath = "$[*]"  # Or override `parse_response`.
+    records_jsonpath = "$.records[*]"
 
     def get_url_params(self, partition: Optional[dict]) -> Dict[str, Any]:
         """Return a dictionary of values to be used in URL parameterization."""
@@ -128,6 +128,8 @@ class ListMembersStream(RESTStream):
                 )
             ),
         )
+        # sleep timer to avoid Klaviyo API rate limit errors
+        time.sleep(1)
         return request
 
     def get_url(self, context: Optional[dict], list_id: Optional[str]) -> str:
