@@ -141,32 +141,30 @@ class ListMembersStream(RESTStream):
 
         return url
 
-    def request_records(self, context: Optional[dict], list_id: Optional[str]) -> Iterable[dict]:
-        """Request records from REST endpoint(s), returning response records.
+    # def request_records(self, context: Optional[dict], list_id: Optional[str]) -> Iterable[dict]:
+    #     """Request records from REST endpoint(s), returning response records.
 
-        If pagination is detected, pages will be recursed automatically.
-        """
-        next_page_token: Any = None
-        finished = False
-        decorated_request = self.request_decorator(self._request)
-        while not finished:
-            prepared_request = self.prepare_request(
-                context, next_page_token=next_page_token, list_id=list_id
-            )
-            raw_resp = decorated_request(prepared_request, context)
-            #One second sleep timer between requests to avoid hitting the API rate limit
-            time.sleep(1)
-            resp = raw_resp.json()
-            result = resp['records']
-            for row in result:
-                row['list_id'] = list_id
-                yield row            
-            #pulls marker from json response to use in next page API call
-            #breaks the loop when no marker is returned in the response
-            if 'marker' in resp.keys():
-                next_page_token = resp['marker']
-            else:
-                finished = True
+    #     If pagination is detected, pages will be recursed automatically.
+    #     """
+    #     next_page_token: Any = None
+    #     finished = False
+    #     decorated_request = self.request_decorator(self._request)
+    #     while not finished:
+    #         prepared_request = self.prepare_request(
+    #             context, next_page_token=next_page_token, list_id=list_id
+    #         )
+    #         raw_resp = decorated_request(prepared_request, context)
+    #         resp = raw_resp.json()
+    #         result = resp['records']
+    #         for row in result:
+    #             row['list_id'] = list_id
+    #             yield row            
+    #         #pulls marker from json response to use in next page API call
+    #         #breaks the loop when no marker is returned in the response
+    #         if 'marker' in resp.keys():
+    #             next_page_token = resp['marker']
+    #         else:
+    #             finished = True
 
 
     def get_records(self, context: Optional[dict]) -> Iterable[Dict[str, Any]]:
@@ -176,6 +174,8 @@ class ListMembersStream(RESTStream):
         """
         list_ids = self.config["listIDs"]
         for id in list_ids:
-            for row in self.request_records(context, list_id=id):
+            path = f"group/{list_id}/members/all"
+            for row in self.request_records(context):
+                row['list_id'] = list_id
                 row = self.post_process(row, context)
                 yield row
