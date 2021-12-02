@@ -90,7 +90,7 @@ class ListMembersStream(RESTStream):
     #Defining the url_base outside of the class results in an error
     url_base = 'https://a.klaviyo.com/api/v2/'
 
-    records_jsonpath = "$[*]"  # Or override `parse_response`.
+    records_jsonpath = "$.records[*]"
 
     def get_url_params(self, partition: Optional[dict]) -> Dict[str, Any]:
         """Return a dictionary of values to be used in URL parameterization."""
@@ -128,6 +128,8 @@ class ListMembersStream(RESTStream):
                 )
             ),
         )
+        # sleep timer to avoid Klaviyo API rate limit errors
+        time.sleep(1)
         return request
 
     def get_url(self, context: Optional[dict], list_id: Optional[str]) -> str:
@@ -139,32 +141,6 @@ class ListMembersStream(RESTStream):
 
         return url
 
-    def request_records(self, context: Optional[dict], list_id: Optional[str]) -> Iterable[dict]:
-        """Request records from REST endpoint(s), returning response records.
-
-        If pagination is detected, pages will be recursed automatically.
-        """
-        next_page_token: Any = None
-        finished = False
-        while not finished:
-            prepared_request = self.prepare_request(
-                context, next_page_token=next_page_token, list_id=list_id
-            )
-            raw_resp = self._request_with_backoff(prepared_request, context)
-            #One second sleep timer between requests to avoid hitting the API rate limit
-            time.sleep(1)
-            resp = raw_resp.json()
-            result = resp['records']
-            for row in result:
-                row['list_id'] = list_id
-                yield row            
-            #pulls marker from json response to use in next page API call
-            #breaks the loop when no marker is returned in the response
-            if 'marker' in resp.keys():
-                next_page_token = resp['marker']
-            else:
-                finished = True
-
 
     def get_records(self, context: Optional[dict]) -> Iterable[Dict[str, Any]]:
         """Return a generator of row-type dictionary objects.
@@ -172,7 +148,10 @@ class ListMembersStream(RESTStream):
         Each row emitted should be a dictionary of property names to their values.
         """
         list_ids = self.config["listIDs"]
+        # loops through the Klaviyo list IDs and updates the URL path to include each
         for id in list_ids:
-            for row in self.request_records(context, list_id=id):
+            path = f"group/{list_id}/members/all"
+            for row in self.request_records(context):
+                row['list_id'] = list_id
                 row = self.post_process(row, context)
                 yield row
