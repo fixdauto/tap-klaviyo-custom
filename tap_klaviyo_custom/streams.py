@@ -108,7 +108,7 @@ class ListMembersStream(RESTStream):
         `next_page_token` is not None.
         """
         http_method = self.rest_method
-        url: str = self.get_url(context, list_id)
+        url: str = self.get_url(context)
         params: dict = self.get_url_params(context)
         request_data = self.prepare_request_payload(context, next_page_token)
         headers = self.http_headers
@@ -132,14 +132,14 @@ class ListMembersStream(RESTStream):
         time.sleep(1)
         return request
 
-    def get_url(self, context: Optional[dict], list_id: Optional[str]) -> str:
-        """Return a URL, optionally targeted to a specific partition or context.
+    # def get_url(self, context: Optional[dict], list_id: Optional[str]) -> str:
+    #     """Return a URL, optionally targeted to a specific partition or context.
 
-        Developers override this method to perform dynamic URL generation.
-        """
-        url = self.url_base+self.path.format(list_id=list_id)
+    #     Developers override this method to perform dynamic URL generation.
+    #     """
+    #     url = self.url_base+self.path.format(list_id=list_id)
 
-        return url
+    #     return url
 
 
     def get_records(self, context: Optional[dict]) -> Iterable[Dict[str, Any]]:
