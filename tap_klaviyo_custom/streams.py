@@ -99,7 +99,7 @@ class ListMembersStream(RESTStream):
         return params
 
     def prepare_request(
-        self, context: Optional[dict], next_page_token: Optional[Any], list_id: Optional[str]
+        self, context: Optional[dict], next_page_token: Optional[Any]
     ) -> requests.PreparedRequest:
         """Prepare a request object.
 
