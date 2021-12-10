@@ -150,8 +150,8 @@ class ListMembersStream(RESTStream):
         list_ids = self.config["listIDs"]
         # loops through the Klaviyo list IDs and updates the URL path to include each
         for id in list_ids:
-            path = f"group/{list_id}/members/all"
+            path = f"group/{id}/members/all"
             for row in self.request_records(context):
-                row['list_id'] = list_id
+                row['list_id'] = id
                 row = self.post_process(row, context)
                 yield row
