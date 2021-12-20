@@ -1,29 +1,23 @@
-"""klaviyo-custom tap class."""
+"""klaviyo tap class."""
 
 from typing import List
 
-from singer_sdk import Tap, Stream
+from singer_sdk import Stream, Tap
 from singer_sdk import typing as th  # JSON schema typing helpers
+from tap_klaviyo_custom.streams import ListMembersStream, ListsStream
 
-from tap_klaviyo_custom.streams import (
-    ListMembersStream,
-    ListsStream
-)
-
-STREAM_TYPES = [
-    ListMembersStream,
-    ListsStream
-]
+STREAM_TYPES = [ListMembersStream, ListsStream]
 
 
-class Tapklaviyo_custom(Tap):
-    """klaviyo-custom tap class."""
-    name = "klaviyo_custom"
+class TapKlaviyo(Tap):
+    """Klaviyo tap class."""
+
+    name = "klaviyo"
 
     config_jsonschema = th.PropertiesList(
-        th.Property("auth_token", th.StringType, required=False),
-        th.Property("start_date", th.DateTimeType),
         th.Property("api_url", th.StringType, default="https://a.klaviyo.com/api/v2/"),
+        th.Property("api_key", th.StringType),
+        th.Property("start_date", th.DateTimeType),
         th.Property("list_ids", th.ArrayType(th.StringType)),
     ).to_dict()
 
