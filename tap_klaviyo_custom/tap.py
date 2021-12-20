@@ -4,6 +4,7 @@ from typing import List
 
 from singer_sdk import Stream, Tap
 from singer_sdk import typing as th  # JSON schema typing helpers
+
 from tap_klaviyo_custom.streams import ListMembersStream, ListsStream
 
 STREAM_TYPES = [ListMembersStream, ListsStream]

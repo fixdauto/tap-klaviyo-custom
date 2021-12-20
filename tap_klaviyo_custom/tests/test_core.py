@@ -4,6 +4,7 @@ import datetime
 import os
 
 from singer_sdk.testing import get_standard_tap_tests
+
 from tap_klaviyo_custom.tap import TapKlaviyo
 
 SAMPLE_CONFIG = {
