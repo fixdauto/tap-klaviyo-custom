@@ -32,6 +32,13 @@ class KlaviyoStream(RESTStream):
             location="params",
         )
 
+    @property
+    def http_headers(self) -> dict:
+        """Return headers dict to be used for HTTP requests."""
+        return {
+            "User-Agent": self.config["user_agent"],
+        }
+
     def validate_response(self, response: requests.Response) -> None:
         """Validate HTTP response.
 

@@ -17,9 +17,10 @@ class TapKlaviyo(Tap):
 
     config_jsonschema = th.PropertiesList(
         th.Property("api_url", th.StringType, default="https://a.klaviyo.com/api/v2/"),
-        th.Property("api_key", th.StringType),
+        th.Property("api_key", th.StringType, required=True),
         th.Property("start_date", th.DateTimeType),
-        th.Property("list_ids", th.ArrayType(th.StringType)),
+        th.Property("list_ids", th.ArrayType(th.StringType), required=True),
+        th.Property("user_agent", th.StringType, default="fixdauto/tap-klaviyo-custom"),
     ).to_dict()
 
     def discover_streams(self) -> List[Stream]:
