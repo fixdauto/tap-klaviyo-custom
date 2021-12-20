@@ -2,25 +2,21 @@
   "type": "object",
   "properties": {
     "created": {
-      "type": "string"
+      "type": ["null", "string"],
+      "format": "date-time"
     },
     "updated": {
-      "type": "string"
-    },
-    "person_count": {
-      "type": "integer"
-    },
-    "object": {
-      "type": "string"
+      "type": ["null", "string"],
+      "format": "date-time"
     },
     "list_name": {
-      "type": "string"
-    },
-    "type": {
-      "type": "string"
+      "type": ["null", "string"]
     },
     "list_id": {
-      "type": "string"
+      "type": ["null", "string"]
+    },
+    "folder_name": {
+      "type": ["null", "string"]
     }
   }
 }

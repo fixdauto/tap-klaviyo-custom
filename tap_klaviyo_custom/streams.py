@@ -1,157 +1,122 @@
 """Stream type classes for tap-klaviyo-custom."""
 
-import base64
-import requests
-from pathlib import Path
-from typing import Any, Dict, Optional, Union, List, Iterable, cast
-import copy
-import urllib
-import json
 import time
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
-from singer_sdk import typing as th  # JSON Schema typing helpers
-
-from singer_sdk.helpers.jsonpath import extract_jsonpath
+import requests
+from singer_sdk.authenticators import APIAuthenticatorBase, APIKeyAuthenticator
+from singer_sdk.exceptions import RetriableAPIError
 from singer_sdk.streams import RESTStream
-import tap_klaviyo_custom.tap
-
-import singer
-
-LOGGER = singer.get_logger()
 
 SCHEMAS_DIR = Path(__file__).parent / Path("./schemas")
 
 
-class ListsStream(RESTStream):
-    """Define custom stream."""
+class KlaviyoStream(RESTStream):
+    """Base class for TapKlaviyo streams."""
+
+    records_jsonpath = "$[*]"
+
+    @property
+    def url_base(self) -> str:
+        """Return the base url, e.g. ``https://api.mysite.com/v3/``."""
+        return self.config["api_url"]
+
+    @property
+    def authenticator(self) -> APIAuthenticatorBase:
+        """Return or set the authenticator for managing HTTP auth headers."""
+        return APIKeyAuthenticator(
+            stream=self,
+            key="api_key",
+            value=self.config["api_key"],
+            location="params",
+        )
+
+    @property
+    def http_headers(self) -> dict:
+        """Return headers dict to be used for HTTP requests."""
+        return {
+            "User-Agent": self.config["user_agent"],
+        }
+
+    def validate_response(self, response: requests.Response) -> None:
+        """Validate HTTP response.
+
+        By default, checks for error status codes (>400) and raises a
+        :class:`singer_sdk.exceptions.FatalAPIError`.
+
+        Raises
+        ------
+            FatalAPIError: If the request is not retriable.
+            RetriableAPIError: If the request is retriable.
+
+        """
+        if response.status_code == 429:
+            wait_time = int(response.headers["Retry-After"])
+            self.logger.info(f"Throttled. Waiting {wait_time} seconds...")
+            time.sleep(wait_time)
+            raise RetriableAPIError("Throttled")
+
+        # Otherwise use default error checking
+        super().validate_response(response)
+
+
+class ListsStream(KlaviyoStream):
+    """A stream for lists."""
+
     name = "lists"
     path = "lists"
     primary_keys = ["list_id"]
     replication_key = None
     schema_filepath = SCHEMAS_DIR / "lists.json"
-    #Defining the url_base outside of the class results in an error
-    url_base = 'https://a.klaviyo.com/api/v2/'
 
-    records_jsonpath = "$[*]"  # Or override `parse_response`.
+    @property
+    def partitions(self) -> Optional[List[dict]]:
+        """Get stream partitions."""
+        return [{"list_id": id} for id in self.config["list_ids"]]
 
-    def get_url_params(self, partition: Optional[dict]) -> Dict[str, Any]:
-        """Return a dictionary of values to be used in URL parameterization."""
-        params = {}
-        params.update({"api_key": self.config['api_key']})
-        return params
+    def get_next_page_token(
+        self, response: requests.Response, previous_token: Optional[Any]
+    ) -> Any:
+        """Return token identifying next page or None if all records have been read."""
+        # since we're using partitions, there's only ever one page per partition
+        return None
 
-    def prepare_request(
-        self, context: Optional[dict], next_page_token: Optional[Any]
-    ) -> requests.PreparedRequest:
-        """Prepare a request object.
+    def post_process(self, row: dict, context: Optional[dict] = None) -> Optional[dict]:
+        """As needed, append or transform raw data to match expected structure."""
+        # For some reason,  the id is not included in the response
+        assert context is not None
+        return {**row, "list_id": context["list_id"]}
 
-        If partitioning is supported, the `context` object will contain the partition
-        definitions. Pagination information can be parsed from `next_page_token` if
-        `next_page_token` is not None.
-        """
-        http_method = self.rest_method
-        url: str = self.get_url(context)
-        params: dict = self.get_url_params(context)
-        request_data = self.prepare_request_payload(context, next_page_token)
-        headers = self.http_headers
-
-        request = cast(
-            requests.PreparedRequest,
-            self.requests_session.prepare_request(
-                requests.Request(
-                    method=http_method,
-                    url=url,
-                    params=params,
-                    headers=headers,
-                    json=request_data,
-                )
-            ),
-        )
-        return request
-
-    def get_url(self, context: Optional[dict]) -> str:
-        """Return a URL, optionally targeted to a specific partition or context.
-
-        Developers override this method to perform dynamic URL generation.
-        """
-        url = self.url_base+self.path
-
-        return url
+    def get_child_context(self, record: dict, context: Optional[dict]) -> dict:
+        """Return a context dictionary for child streams."""
+        assert context is not None
+        return {"list_id": context["list_id"]}
 
 
+class ListMembersStream(KlaviyoStream):
+    """A Stream for list members."""
 
-class ListMembersStream(RESTStream):
-    """Define custom stream."""
     name = "list_members"
     path = "group/{list_id}/members/all"
-    primary_keys = ["email"]
+    primary_keys = ["id"]
     replication_key = None
     schema_filepath = SCHEMAS_DIR / "list_members.json"
-    #Defining the url_base outside of the class results in an error
-    url_base = 'https://a.klaviyo.com/api/v2/'
-
     records_jsonpath = "$.records[*]"
+    next_page_token_jsonpath = "$.marker"
+    parent_stream_type = ListsStream
 
-    def get_url_params(self, partition: Optional[dict]) -> Dict[str, Any]:
+    def get_url_params(
+        self, context: Optional[dict], next_page_token: Optional[Any]
+    ) -> Dict[str, Any]:
         """Return a dictionary of values to be used in URL parameterization."""
-        params = {}
-        params.update({"api_key": self.config['api_key']})
-        return params
+        assert context is not None
+        return {
+            "list_id": context["list_id"],
+            "marker": next_page_token,
+        }
 
-    def prepare_request(
-        self, context: Optional[dict], next_page_token: Optional[Any], list_id: Optional[str]
-    ) -> requests.PreparedRequest:
-        """Prepare a request object.
-
-        If partitioning is supported, the `context` object will contain the partition
-        definitions. Pagination information can be parsed from `next_page_token` if
-        `next_page_token` is not None.
-        """
-        http_method = self.rest_method
-        url: str = self.get_url(context, list_id)
-        params: dict = self.get_url_params(context)
-        request_data = self.prepare_request_payload(context, next_page_token)
-        headers = self.http_headers
-
-        if next_page_token != None:
-            params['marker'] = next_page_token
-
-        request = cast(
-            requests.PreparedRequest,
-            self.requests_session.prepare_request(
-                requests.Request(
-                    method=http_method,
-                    url=url,
-                    params=params,
-                    headers=headers,
-                    json=request_data,
-                )
-            ),
-        )
-        # sleep timer to avoid Klaviyo API rate limit errors
-        time.sleep(1)
-        return request
-
-    def get_url(self, context: Optional[dict], list_id: Optional[str]) -> str:
-        """Return a URL, optionally targeted to a specific partition or context.
-
-        Developers override this method to perform dynamic URL generation.
-        """
-        url = self.url_base+self.path.format(list_id=list_id)
-
-        return url
-
-
-    def get_records(self, context: Optional[dict]) -> Iterable[Dict[str, Any]]:
-        """Return a generator of row-type dictionary objects.
-
-        Each row emitted should be a dictionary of property names to their values.
-        """
-        list_ids = self.config["listIDs"]
-        # loops through the Klaviyo list IDs and updates the URL path to include each
-        for id in list_ids:
-            path = f"group/{list_id}/members/all"
-            for row in self.request_records(context):
-                row['list_id'] = list_id
-                row = self.post_process(row, context)
-                yield row
+    def post_process(self, row: dict, context: Optional[dict] = None) -> Optional[dict]:
+        """As needed, append or transform raw data to match expected structure."""
+        assert context is not None
+        return {**row, "list_id": context["list_id"]}
