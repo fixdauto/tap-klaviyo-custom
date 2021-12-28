@@ -6,12 +6,12 @@ from singer_sdk import Tap, Stream
 from singer_sdk import typing as th  # JSON schema typing helpers
 
 from tap_klaviyo_custom.streams import (
-    ListMembersStream,
+    # ListMembersStream,
     ListsStream
 )
 
 STREAM_TYPES = [
-    ListMembersStream,
+    # ListMembersStream,
     ListsStream
 ]
 
